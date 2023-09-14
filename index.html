@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Map</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="Leaflet.Coordinates-0.1.5.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="logo.jpg">
+    <link rel="stylesheet" href="L.Control.Layers.Tree.css" />
+    <style>
+        /* Add some basic styling for the home button */
+        #home-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: white;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Style for the custom popup */
+        .custom-popup {
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+            /* Style for the popup title */
+            .custom-popup h3 {
+                font-size: 16px;
+                margin: 0;
+                padding-bottom: 5px;
+                border-bottom: 1px solid green;
+            }
+
+            /* Style for popup content */
+            .custom-popup p {
+                margin: 0;
+                padding: 5px 0;
+            }
+
+    </style>
+</head>
+<body>
+    <div id="map" style="width: 100%; height: 700px;"></div>
+    <div id="home-button" style="position: absolute; top: 90px; left: 10px; background-color: white; border:none;">
+        <i class="fas fa-home"></i> <!-- Font Awesome home icon -->
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Leaflet-providers JavaScript for Google Satellite layer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.12.0/leaflet-providers.min.js"></script>
+    <script src="Leaflet.Coordinates-0.1.5.src.js"></script>
+    <script src="L.Control.Layers.Tree.js"></script>
+    <script src="leaflet-geojson-vt.js"></script>
+    <script src="geojson3.js"></script>
+    <script src="geojson2.js"></script>
+    <script>
+        // Define the getColor function before using it
+        function getColor(name) {
+            if (name === "Entrance") return 'yellow';
+            if (name === "Hotspots") return 'red';
+            if (name === "Exit") return 'orange';
+        }
+
+        // Initialize the map
+        var map = L.map('map').setView([-1.29833333, 36.82361111], 16);
+
+        // Adding the satellite imagery basemap
+        var satelliteLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 20,
+            id: 'mapbox/satellite-v9',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: 'pk.eyJ1Ijoic2ltaW9uMTIzIiwiYSI6ImNsZzZkaGJtcjBjZG8zcnFpcG1icHZ0MWEifQ.qs9HmzJglua2mUBOnoahQQ'
+        }).addTo(map);
+
+        // Adding the OSM basemap
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+            maxZoom: 25,
+        });
+
+        // Set the Mapbox basemap as the default basemap
+        satelliteLayer.addTo(map);
+
+        //Coordinates/ Mouse Position
+        L.control.coordinates({
+            position: "bottomright", //optional default "bottomright"
+            useDMS: true,
+            labelTemplateLat: "Latitude: {y}",
+            labelTemplateLng: "Longitude: {x}",
+            useLatLngOrder: true,
+        }).addTo(map);
+
+        //Scale Bar
+        L.control.scale().addTo(map);
+
+        // Function to reset the map view to its initial position
+        function resetMapView() {
+            map.setView([-1.29833333, 36.82361111], 16);
+        }
+
+        // Add a click event listener to the "Home" button
+        document.getElementById('home-button').addEventListener('click', resetMapView);
+        // Create the GeoJSON layers with styled popups
+        var entranceLayer = L.geoJSON(hotspots, {
+            filter: function (feature) {
+                return feature.properties.name === 'Entrance';
+            },
+            style: {
+                fillColor: getColor('Entrance'),
+                fillOpacity: 0.8,
+                weight: 1,
+                color: 'black'
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
+            }
+        }).addTo(map);
+
+        var hotspotsLayer = L.geoJSON(hotspots, {
+            filter: function (feature) {
+                return feature.properties.name === 'Hotspots';
+            },
+            style: {
+                fillColor: getColor('Hotspots'),
+                fillOpacity: 0.8,
+                weight: 1,
+                color: 'black'
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
+            }
+        });
+
+        var exitLayer = L.geoJSON(hotspots, {
+            filter: function (feature) {
+                return feature.properties.name === 'Exit';
+            },
+            style: {
+                fillColor: getColor('Exit'),
+                fillOpacity: 0.8,
+                weight: 1,
+                color: 'black'
+            },
+            onEachFeature: function (feature, layer) {
+                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
+            }
+        });
+
+        // Define the "Mombasa Road" GeoJSON layer
+        var mombasaRoadLayer = L.geoJSON(mombasa, {
+            style: {
+                color: 'blue',
+                weight: 3,
+                opacity: 1,
+                dashArray: '5, 5'
+            }
+        });
+
+        // Create groups for organizing the layers
+        var groupedOverlays = {
+            "Basemaps": {
+                "Satellite": satelliteLayer,
+                "OpenStreetMap": osmLayer
+            },
+            "Locations": {
+                "Entrance": entranceLayer,
+                "Hotspots": hotspotsLayer,
+                "Exit": exitLayer
+            },
+            "Roads": {
+                "Mombasa Road": mombasaRoadLayer
+            }
+        };
+
+        // Create the updated overlaysTree hierarchy
+        var overlaysTree = {
+            label: 'Base Layers',
+            selectAllCheckbox: 'Un/select all',
+            children: [
+                {
+                    label: 'Basemaps',
+                    selectAllCheckbox: true,
+                    children: [
+                        {
+                            label: 'Google Satellite',
+                            layer: groupedOverlays.Basemaps.Satellite,
+                        }, {
+                            label: 'OSM',
+                            layer: groupedOverlays.Basemaps.OpenStreetMap,
+                        }
+                    ]
+                }, {
+                    label: 'Locations',
+                    selectAllCheckbox: true,
+                    children: [
+                        {
+                            selectAllCheckbox: true,
+                            children: [
+                                {
+                                    label: 'Entrance',
+                                    layer: groupedOverlays.Locations.Entrance,
+                                }, {
+                                    label: 'Hotspots',
+                                    layer: groupedOverlays.Locations.Hotspots,
+                                }, {
+                                    label: 'Exit',
+                                    layer: groupedOverlays.Locations.Exit,
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    label: 'Roads',
+                    selectAllCheckbox: 'Un/select all',
+                    children: [
+                        {
+                            selectAllCheckbox: true,
+                            children: [
+                                {
+                                    label: 'Mombasa Road',
+                                    layer: groupedOverlays.Roads['Mombasa Road'],
+                                }
+                            ]
+                        },
+                    ]
+                }
+            ]
+        };
+
+        // Create a control layer with the tree structure for overlays
+        var treeControl = L.control.layers.tree(null, overlaysTree, {
+            collapsed: false, // Set to true to initially collapse the tree
+        }).addTo(map);
+
+          // By default, the "Mombasa Road" layer is added to the map
+        mombasaRoadLayer.addTo(map);   
+        hotspotsLayer.addTo(map);
+        exitLayer.addTo(map);
+    </script>
+</body>
+</html>
+
