@@ -3,54 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Web Map</title>
+    <title>Fibre Optics</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="Leaflet.Coordinates-0.1.5.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="logo.jpg">
+    <link rel="shortcut icon" type="image/x-icon" href="logo1.jpg">
     <link rel="stylesheet" href="L.Control.Layers.Tree.css" />
+    <link rel="stylesheet" href="Control.FullScreen.css" />
+    <link rel="stylesheet" href="leaflet-measure.css" />
+    <link rel="stylesheet" href="leaflet.zoomhome.css" />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.0-beta.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css" integrity="sha384-P9DABSdtEY/XDbEInD3q+PlL+BjqPCXGcF8EkhtKSfSTr/dS5PBKa9+/PMkW2xsY" crossorigin="anonymous">
     <style>
-        /* Add some basic styling for the home button */
-        #home-button {
+        #map {
+            width: 100%;
+            height: 800px;
+            position: relative;
+        }
+
+        /* Style for filter form */
+        #filterForm {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 70px;
+            left: 400px;
+            z-index: 999; /* Ensure the form appears above other elements */
             background-color: white;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-            z-index: 1000;
-        }
-
-        /* Style for the custom popup */
-        .custom-popup {
             padding: 10px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            display: none;
         }
 
-            /* Style for the popup title */
-            .custom-popup h3 {
-                font-size: 16px;
-                margin: 0;
-                padding-bottom: 5px;
-                border-bottom: 1px solid green;
+        /* Style for filter icon */
+        #filterIcon {
+            position: absolute;
+            top: 160px;
+            left: 17px;
+            z-index: 1000; /* Ensure the icon appears above the form */
+            background-color: white;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .title-section {
+            background-color: cadetblue;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+            margin-right: 10px;
+        }
+
+        .logo, .title {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .title {
+            color: brown;
+            font-size: 30px;
+            margin: 0;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+            .search-input-wrapper input {
+                width: 100%;
+                border: none;
+                border-bottom: 2px solid #ccc;
+                font-size: 1.2em;
+                padding: 10px;
+                margin-right: 10px;
             }
 
-            /* Style for popup content */
-            .custom-popup p {
-                margin: 0;
-                padding: 5px 0;
+                .search-input-wrapper input:focus {
+                    outline: none;
+                    border-bottom: 2px solid blue;
+                }
+
+        #search-button {
+            background-color: #0078A8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: background-color 0.3s ease-in-out;
+        }
+
+            #search-button:hover {
+                background-color: #005C92;
+            }
+
+        @media (max-width: 700px) {
+            /* Mobile-specific styles */
+            .title-section {
+                padding: 10px;
+            }
+
+            .search-input-wrapper {
+                margin-top: 10px;
+            }
+        }
+        .nav-tabs {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* Custom CSS for Popup Styling */
+        .popup-container {
+            background-color: #ffffff;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            padding: 10px;
+            width: 250px;
+            text-align: left;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .popup-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+
+        .popup-content {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .popup-button {
+            display: block;
+            background-color: #3498db;
+            color: #ffffff;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .popup-button:hover {
+                background-color: #2980b9;
+            }
+
+        /* Define styles for the custom-popup */
+        .custom-popup {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 300px; /* Adjust the maximum width as needed */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+            /* Style the h4 heading */
+            .custom-popup h4 {
+                font-size: 18px;
+                margin-top: 0;
+                margin-bottom: 10px;
+            }
+
+            /* Style the table */
+            .custom-popup table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            /* Style table header cells */
+            .custom-popup th {
+                text-align: left;
+                background-color: #f2f2f2;
+                padding: 5px;
+            }
+
+            /* Style table data cells */
+            .custom-popup td {
+                padding: 5px;
+            }
+
+            /* Add hover effect to rows */
+            .custom-popup tr:hover {
+                background-color: #e0e0e0;
             }
 
     </style>
 </head>
 <body>
-    <div id="map" style="width: 100%; height: 700px;"></div>
-    <div id="home-button" style="position: absolute; top: 90px; left: 10px; background-color: white; border:none;">
-        <i class="fas fa-home"></i> <!-- Font Awesome home icon -->
+    <div class="title-section">
+        <header>
+            <div class="logo">
+                <img src="asset2.png" alt="Fibre Optics Logo">
+            </div>
+            <h1 class="title"> | Fibre Optics</h1>
+        </header>
+        <div class="search-input-wrapper">
+            <input type="text" id="search-input" placeholder="Search a Fiber Line">
+            <button id="search-button"><i class="fa fa-search"></i></button>
+        </div>
+    </div>
+    <div id="map">
+        <!-- Filter Icon -->
+        <i id="filterIcon" class="fas fa-filter text-primary" onclick="toggleFilterForm()"></i>
+
+        <!-- Filter Form (Initially hidden) -->
+        <form id="filterForm" class="bg-light p-4 rounded" style="display: none;">
+            <div class="row">
+                <!-- Route Information -->
+                <div class="col-md-4">
+                    <h5 class="mb-3">Route Information</h5>
+                    <div class="form-group">
+                        <label for="routeName">Route Name:</label>
+                        <input type="text" class="form-control" id="routeName" placeholder="Enter Route Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceAvailable">Service Available:</label>
+                        <input type="text" class="form-control" id="serviceAvailable" placeholder="Enter Service Available">
+                    </div>
+                    <!-- Add more route attributes here -->
+                </div>
+
+                <!-- Fiber Information -->
+                <div class="col-md-4">
+                    <h5 class="mb-3">Fiber Information</h5>
+                    <div class="form-group">
+                        <label for="fiberType">Fiber Type:</label>
+                        <input type="text" class="form-control" id="fiberType" placeholder="Enter Fiber Type">
+                    </div>
+                    <div class="form-group">
+                        <label for="installationDate">Installation Date:</label>
+                        <input type="text" class="form-control" id="installationDate" placeholder="Enter Installation Date">
+                    </div>
+                    <!-- Add more fiber attributes here -->
+                </div>
+
+                <!-- Operator Information -->
+                <div class="col-md-4">
+                    <h5 class="mb-3">Operator Information</h5>
+                    <div class="form-group">
+                        <label for="operator">Operator:</label>
+                        <input type="text" class="form-control" id="operator" placeholder="Enter Operator">
+                    </div>
+                    <div class="form-group">
+                        <label for="infrastructure">Infrastructure:</label>
+                        <input type="text" class="form-control" id="infrastructure" placeholder="Enter Infrastructure">
+                    </div>
+                    <!-- Add more operator attributes here -->
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success">Apply Filter</button>
+        </form>
+
+
     </div>
 
     <!-- Leaflet JavaScript -->
@@ -59,35 +280,52 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-providers/1.12.0/leaflet-providers.min.js"></script>
     <script src="Leaflet.Coordinates-0.1.5.src.js"></script>
     <script src="L.Control.Layers.Tree.js"></script>
+    <script src="Control.FullScreen.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js" integrity="sha384-N2S8y7hRzXUPiepaSiUvBH1ZZ7Tc/ZfchhbPdvOE5v3aBBCIepq9l+dBJPFdo1ZJ" crossorigin="anonymous"></script>
     <script src="leaflet-geojson-vt.js"></script>
-    <script src="geojson3.js"></script>
-    <script src="geojson2.js"></script>
-    <script>
-        // Define the getColor function before using it
-        function getColor(name) {
-            if (name === "Entrance") return 'yellow';
-            if (name === "Hotspots") return 'red';
-            if (name === "Exit") return 'orange';
-        }
+    <script src="fiberss.js"></script>
+    <script src="junct.js"></script>
+    <script src="road.js"></script>
+    <script src="centers.js"></script>
+    <script src="mainss.js"></script>
+    <script src="Leaflet.LocationShare.js"></script>
+    <script src="leaflet.browser.print.js"></script>
+    <script src="leaflet.zoomhome.min.js"></script>
+    <script src="https://unpkg.com/leaflet.pm@latest/dist/leaflet.pm.min.js"></script>
+    <script src="https://cdn.osmbuildings.org/classic/0.2.2b/OSMBuildings-Leaflet.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.0-beta.1/mapbox-gl.js'></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+    <script>
         // Initialize the map
-        var map = L.map('map').setView([-1.29833333, 36.82361111], 16);
+        var map = L.map('map', { zoomControl: false }).setView([-1.288148, 36.781376], 15);
 
         // Adding the satellite imagery basemap
         var satelliteLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
             attribution: 'Map data &copy; <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 20,
+            maxZoom: 25,
             id: 'mapbox/satellite-v9',
             tileSize: 512,
             zoomOffset: -1,
             accessToken: 'pk.eyJ1Ijoic2ltaW9uMTIzIiwiYSI6ImNsZzZkaGJtcjBjZG8zcnFpcG1icHZ0MWEifQ.qs9HmzJglua2mUBOnoahQQ'
-        }).addTo(map);
+        })
 
         // Adding the OSM basemap
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
             maxZoom: 25,
         });
+
+        var EsriWorldTerrainLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, and NPS',
+            maxZoom: 13
+        });
+
+        //OSM Building Data
+        var osmbLayer = new OSMBuildings(map).load('https://{s}.data.osmbuildings.org/0.2/anonymous/tile/{z}/{x}/{y}.json');
+
 
         // Set the Mapbox basemap as the default basemap
         satelliteLayer.addTo(map);
@@ -104,82 +342,244 @@
         //Scale Bar
         L.control.scale().addTo(map);
 
-        // Function to reset the map view to its initial position
-        function resetMapView() {
-            map.setView([-1.29833333, 36.82361111], 16);
-        }
+        var zoomHome = L.Control.zoomHome();
+        zoomHome.addTo(map);
 
-        // Add a click event listener to the "Home" button
-        document.getElementById('home-button').addEventListener('click', resetMapView);
-        // Create the GeoJSON layers with styled popups
-        var entranceLayer = L.geoJSON(hotspots, {
-            filter: function (feature) {
-                return feature.properties.name === 'Entrance';
-            },
-            style: {
-                fillColor: getColor('Entrance'),
-                fillOpacity: 0.8,
-                weight: 1,
-                color: 'black'
+        // create a fullscreen button and add it to the map
+        L.control.fullscreen({
+            position: 'topright',
+            title: 'Show me the fullscreen !',
+            titleCancel: 'Exit fullscreen mode',
+            content: null,
+            forceSeparateButton: true,
+            fullscreenElement: false
+        }).addTo(map);
+
+        // Add the Measure Control
+        L.control.ruler({
+            position: 'bottomleft'
+        }).addTo(map);
+
+        // Define options for browser print control
+        var options = {
+            title: 'Print Map',
+            position: 'bottomleft'
+        };
+
+        // Create browser print control with options and add it to the map
+        var browserControl = L.control.browserPrint(options).addTo(map);
+
+        var options = {
+            position: 'bottomleft',
+            lengthUnit: {
+                factor: 0.539956803,    // from km to nm
+                display: 'meters',
+                decimal: 2
+            }
+        };
+
+        map.pm.addControls({
+            position: 'bottomright',
+            drawCircle: false,
+        });
+
+        // Define the "Routes Data" GeoJSON layer
+        var fiberLayer = L.geoJSON(fiberss, {
+            style: function (feature) {
+                // Define a color mapping for different route names
+                var color;
+                switch (feature.properties.Route_Name) {
+                    case "Ngong Road-Kibera Station Road":
+                        color = 'pink';
+                        break;
+                    case "Gitanga Road- Kikambala Road":
+                        color = 'red';
+                        break;
+                    case "Raila Odinga Way-Ngong Road-Valley Road":
+                        color = 'blue';
+                        break;
+                    case "Moi Avenue-Argwings Kodhek Road":
+                        color = 'yellow';
+                        break;
+                    case "Kingara -Riara-Kilimani Road":
+                        color = 'green';
+                        break;
+                    case "State House-Kenyatta Avenue-Valley Road":
+                        color = 'orange';
+                        break
+                    // Add more cases for other route names and their respective colors
+                    default:
+                        color = 'blue'; // Default color for unknown routes
+                }
+
+                return {
+                    color: color,
+                    weight: 4,
+                    opacity: 1,
+                    dashArray: '5, 5'
+                };
             },
             onEachFeature: function (feature, layer) {
-                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
+                // Create a custom HTML content for the popup
+                var popupContent = `
+                                                    <div class="popup-container">
+                                                        <ul class="nav nav-tabs" id="myTabs">
+                                                            <li class="nav-item">
+                                                                <a class="nav-link active" id="route-tab" data-toggle="tab" href="#route-content">Route</a>
+                                                            </li>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" id="fiber-tab" data-toggle="tab" href="#fiber-content">Fiber</a>
+                                                            </li>
+                                                            <li class="nav-item">
+                                                                <a class="nav-link" id="operator-tab" data-toggle="tab" href="#operator-content">Operator</a>
+                                                            </li>
+                                                        </ul>
+
+                                                        <div class="tab-content">
+                                                            <div class="tab-pane fade show active" id="route-content">
+                                                                <p class="popup-title">Route Information</p>
+                                                                <p class="popup-content"><strong>Route Name:</strong> ${feature.properties.Route_Name}</p>
+                                                                <p class="popup-content"><strong>Service Available:</strong> ${feature.properties.Serv_Avail}</p>
+                                                                <p class="popup-content"><strong>Status:</strong> ${feature.properties.Status}</p>
+                                                                 <p class="popup-content"><strong>Elevation:</strong> ${feature.properties.Elevation}</p>
+                                                                <!-- Add more route attributes here -->
+                                                            </div>
+                                                            <div class="tab-pane fade" id="fiber-content">
+                                                                <p class="popup-title">Fiber Information</p>
+                                                                <p class="popup-content"><strong>Fiber Type:</strong> ${feature.properties.Fibre_type}</p>
+                                                                <p class="popup-content"><strong>Installation Date:</strong> ${feature.properties.Instl_date}</p>
+                                                                <p class="popup-content"><strong>Bandwidth Capacity (Mbps):</strong> ${feature.properties.B_Capacity}</p>
+                                                                <p class="popup-content"><strong>Fibre Length:</strong> ${feature.properties.Lengths}</p>
+                                                                <!-- Add more fiber attributes here -->
+                                                            </div>
+                                                            <div class="tab-pane fade" id="operator-content">
+                                                                <p class="popup-title">Operator Information</p>
+                                                                <p class="popup-content"><strong>Operator:</strong> ${feature.properties.Operator}</p>
+                                                                <p class="popup-content"><strong>Infrastacture:</strong> ${feature.properties.Infrastruc}</p>
+                                                                <p class="popup-content"><strong>Last Maintainance Date:</strong> ${feature.properties.Maint_date}</p>
+                                                                <p class="popup-content"><strong>Comment:</strong> ${feature.properties.Comments}</p>
+                                                                <!-- Add more operator attributes here -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `;
+
+                layer.bindPopup(popupContent);
+            }
+
+        }).addTo(map);
+
+       // Define a custom icon with a blue Font Awesome icon
+        var customIcon = L.divIcon({
+            className: 'custom-div-icon', // Use a custom class name for styling
+            html: '<i class="fas fa-box blue-icon"></i>', // Specify the Font Awesome icon with a "blue-icon" class
+            iconSize: [24, 24], // Set the icon size (adjust as needed)
+            iconAnchor: [12, 24] // Set the anchor point (adjust as needed)
+        });
+
+        // Add a custom CSS rule to style the "blue-icon" class
+        var customCss = document.createElement('style');
+        customCss.innerHTML = '.blue-icon { color: #00b51a; }'; // Modify the color to blue
+        document.getElementsByTagName('head')[0].appendChild(customCss);
+
+        var junctionLayer = L.geoJSON(jun, {
+            pointToLayer: function (feature, latlng) {
+                // Use the custom icon for each junction feature
+                return L.marker(latlng, {
+                    icon: customIcon
+                });
+            },
+            onEachFeature: function (feature, layer) {
+                // Create HTML content for the popup
+                var popupContent =
+                    '<div class="custom-popup">' +
+                    '<h4>Junction Information</h4>' +
+                    '<table>' +
+                    '<tr><th>Junction Name:</th><td>' + feature.properties['Junc Name'] + '</td></tr>' +
+                    '<tr><th>Installation Date:</th><td>' + feature.properties['Instal Dat'] + '</td></tr>' +
+                    '</table>' +
+                    '</div>';
+
+                // Bind the popup content to the layer
+                layer.bindPopup(popupContent);
             }
         }).addTo(map);
 
-        var hotspotsLayer = L.geoJSON(hotspots, {
-            filter: function (feature) {
-                return feature.properties.name === 'Hotspots';
-            },
-            style: {
-                fillColor: getColor('Hotspots'),
-                fillOpacity: 0.8,
-                weight: 1,
-                color: 'black'
-            },
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
-            }
-        });
 
-        var exitLayer = L.geoJSON(hotspots, {
-            filter: function (feature) {
-                return feature.properties.name === 'Exit';
-            },
+        var roadLayer = L.geoJSON(road, {
             style: {
-                fillColor: getColor('Exit'),
-                fillOpacity: 0.8,
-                weight: 1,
-                color: 'black'
-            },
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup("<div class='custom-popup'><h3>" + feature.properties.name + "</h3><p><strong>Region:</strong> " + feature.properties.Region + "</p><p><strong>Type:</strong> " + feature.properties.Type + "</p></div>");
-            }
-        });
-
-        // Define the "Mombasa Road" GeoJSON layer
-        var mombasaRoadLayer = L.geoJSON(mombasa, {
-            style: {
-                color: 'blue',
-                weight: 3,
+                color: 'brown',
+                weight: 8,
                 opacity: 1,
-                dashArray: '5, 5'
             }
         });
+       var centersLayer = L.geoJSON(center, {
+            style: {
+                color: '#00b51a',
+                weight: 2,
+                opacity: 1,
+            },
+            onEachFeature: function (feature, layer) {
+                // Create HTML content for the popup
+                var popupContent =
+                    '<div class="custom-popup">' +
+                    '<h5>' + feature.properties['Name'] + '</h5>'            
+                    '</div>';
+
+                // Bind the popup content to the layer
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(map);
+
+        var mainssLayer = L.geoJSON(mainss, {
+            style: {
+                color: '#00b51a',
+                weight: 4,
+                opacity: 1,
+            },
+            onEachFeature: function (feature, layer) {
+                // Create HTML content for the popup
+                var popupContent =
+                    '<div class="custom-popup">' +
+                    '<h4>' + feature.properties['Route Name'] + '</h4>' +
+                    '<p>Operator: ' + feature.properties['Operator'] + '</p>' +
+                    '<p>Installation Date: ' + feature.properties['Instal_dat'] + '</p>' +
+                    '<p>Capacity: ' + feature.properties['Capacity'] + '</p>' +
+                    '<p>Infrastructure: ' + feature.properties['Infrastruc'] + '</p>' +
+                    '<p>Status: ' + feature.properties['Status'] + '</p>' +
+                    '<p>Elevation: ' + feature.properties['Elevation'] + '</p>' +
+                    '<p>Service Available: ' + feature.properties['Serv_Avail'] + '</p>' +
+                    '<p>Maintenance Date: ' + feature.properties['maint_date'] + '</p>' +
+                    '<p>Comments: ' + feature.properties['Comments'] + '</p>' +
+                    '<p>Fiber Type: ' + feature.properties['Fibre Type'] + '</p>' +
+                    '<p>Length KM: ' + feature.properties['Length KM'] + '</p>' +
+                    '</div>';
+
+                // Bind the popup content to the layer
+                layer.bindPopup(popupContent);
+            }
+        }).addTo(map);
+
+
 
         // Create groups for organizing the layers
         var groupedOverlays = {
             "Basemaps": {
                 "Satellite": satelliteLayer,
-                "OpenStreetMap": osmLayer
+                "OpenStreetMap": osmLayer,
+                "Esri_World_Terrain": EsriWorldTerrainLayer,
+                "OSM_3D_Buildings": osmbLayer
             },
             "Locations": {
-                "Entrance": entranceLayer,
-                "Hotspots": hotspotsLayer,
-                "Exit": exitLayer
+                "Routes": fiberLayer,
+                "Junction_Nodes": junctionLayer
             },
             "Roads": {
-                "Mombasa Road": mombasaRoadLayer
+                "Roads": roadLayer
+            },
+              "DataCenter": {
+                "Centers": centersLayer,
+                "Main_Line": mainssLayer
             }
         };
 
@@ -190,32 +590,39 @@
             children: [
                 {
                     label: 'Basemaps',
-                    selectAllCheckbox: true,
+                    selectAllCheckbox: 'Un/select all',
+                    collapsed: true,
                     children: [
                         {
                             label: 'Google Satellite',
                             layer: groupedOverlays.Basemaps.Satellite,
                         }, {
-                            label: 'OSM',
+                            label: 'OpenStreetMap',
                             layer: groupedOverlays.Basemaps.OpenStreetMap,
+                        }, {
+                            label: 'Esri World Terrain',
+                            layer: groupedOverlays.Basemaps.Esri_World_Terrain
+                        }, {
+                            label: 'OSM 3D Buildings',
+                            layer: groupedOverlays.Basemaps.OSM_3D_Buildings,
+                            checked: true // Add this line to make the checkbox checked by default
                         }
                     ]
                 }, {
                     label: 'Locations',
                     selectAllCheckbox: true,
+                    collapsed: true,
                     children: [
                         {
                             selectAllCheckbox: true,
                             children: [
                                 {
-                                    label: 'Entrance',
-                                    layer: groupedOverlays.Locations.Entrance,
-                                }, {
-                                    label: 'Hotspots',
-                                    layer: groupedOverlays.Locations.Hotspots,
-                                }, {
-                                    label: 'Exit',
-                                    layer: groupedOverlays.Locations.Exit,
+                                    label: 'Routes',
+                                    layer: groupedOverlays.Locations.Routes,
+                                },
+                                {
+                                    label: 'Junction Nodes',
+                                    layer: groupedOverlays.Locations.Junction_Nodes,
                                 }
                             ]
                         }
@@ -223,18 +630,38 @@
                 }, {
                     label: 'Roads',
                     selectAllCheckbox: 'Un/select all',
+                    collapsed: true,
                     children: [
                         {
                             selectAllCheckbox: true,
                             children: [
                                 {
-                                    label: 'Mombasa Road',
-                                    layer: groupedOverlays.Roads['Mombasa Road'],
+                                    label: 'Road',
+                                    layer: groupedOverlays.Roads['Roads'],
                                 }
                             ]
                         },
                     ]
-                }
+                },  {
+                    label: 'Infrastacture',
+                    selectAllCheckbox: true,
+                    collapsed: true,
+                    children: [
+                        {
+                            selectAllCheckbox: true,
+                            children: [
+                                {
+                                    label: 'Data Centers',
+                                    layer: groupedOverlays.Locations.Centers,
+                                },
+                                {
+                                    label: 'Main Line',
+                                    layer: groupedOverlays.Locations.Main_Line,
+                                }
+                            ]
+                        }
+                    ]
+                }, 
             ]
         };
 
@@ -243,10 +670,72 @@
             collapsed: false, // Set to true to initially collapse the tree
         }).addTo(map);
 
-          // By default, the "Mombasa Road" layer is added to the map
-        mombasaRoadLayer.addTo(map);   
-        hotspotsLayer.addTo(map);
-        exitLayer.addTo(map);
+        junctionLayer.addTo(map);
+        fiberLayer.addTo(map);
+        centersLayer.addTo(map);
+        mainssLayer.addTo(map);
+
+        // Get a reference to the search input and button
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+
+        // Function to handle the search
+        function performSearch() {
+            const searchText = searchInput.value.toLowerCase();
+
+            // Loop through the GeoJSON features and check if any attribute contains the search text
+            fiberLayer.eachLayer(layer => {
+                const properties = layer.feature.properties;
+                const attributes = Object.values(properties).map(value => value.toString().toLowerCase());
+
+                if (attributes.some(attribute => attribute.includes(searchText))) {
+                    // Found a match, highlight or do something with the layer
+                    // For example, you can change the layer's style
+                    layer.setStyle({
+                        color: 'cadetblue',
+                        weight: 5,
+                    });
+                } else {
+                    // Reset the layer's style if no match is found
+                    layer.setStyle({
+                        color: 'brown',
+                        weight: 3,
+                        opacity: 1,
+                        dashArray: '5, 5'
+                    });
+                }
+            });
+        }
+
+        // Attach the search function to the search button click event
+        searchButton.addEventListener('click', performSearch);
+
+        // Optionally, you can also trigger the search on pressing Enter in the input field
+        searchInput.addEventListener('keyup', event => {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        function toggleFilterForm() {
+            var filterForm = document.getElementById("filterForm");
+            if (filterForm.style.display === "none" || filterForm.style.display === "") {
+                filterForm.style.display = "block";
+            } else {
+                filterForm.style.display = "none";
+            }
+        }
+
+        // Handle form submission (You can customize this part)
+        document.getElementById("filterForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var attribute1Value = document.getElementById("attribute1").value;
+            console.log("Attribute 1 Value: " + attribute1Value);
+            // Update your map based on the filtered data
+            // Close the form (optional)
+            toggleFilterForm();
+        });
+
     </script>
 </body>
 </html>
